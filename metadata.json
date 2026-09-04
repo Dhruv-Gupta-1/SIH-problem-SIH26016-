@@ -1,0 +1,6 @@
+{
+  "name": "BHUMI-X | National Land Intelligence Platform",
+  "description": "Executive research & policy intelligence desk for national land governance, geospatial GIS cadastral records, policy scenario simulation, and immutable blockchain provenance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
