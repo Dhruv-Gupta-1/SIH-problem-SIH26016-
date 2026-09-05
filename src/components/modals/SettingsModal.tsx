@@ -14,21 +14,26 @@ import {
   RefreshCw,
   Sliders,
   Server,
-  Compass
+  Compass,
+  Sun,
+  Moon,
+  Palette
 } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   isDarkMode: boolean;
+  onToggleDarkMode?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   isDarkMode,
+  onToggleDarkMode,
 }) => {
-  const [activeTab, setActiveTab] = useState<'api' | 'node' | 'geodetic' | 'sim'>('api');
+  const [activeTab, setActiveTab] = useState<'api' | 'node' | 'geodetic' | 'sim' | 'appearance'>('api');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
   const [isSaved, setIsSaved] = useState(false);
@@ -86,12 +91,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onToggleDarkMode && (
+              <button
+                onClick={onToggleDarkMode}
+                id="modal-quick-theme-toggle"
+                title={isDarkMode ? 'Switch to daylight theme' : 'Switch to cadastral dark mode'}
+                className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -142,6 +159,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             <Sliders className="w-3.5 h-3.5" />
             <span>Simulation Parameters</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('appearance')}
+            className={`pb-2.5 px-2 font-medium border-b-2 transition-all flex items-center gap-1.5 ${
+              activeTab === 'appearance'
+                ? 'border-teal-500 text-teal-600 dark:text-teal-400 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5" />
+            <span>Theme & Display</span>
           </button>
         </div>
 
@@ -348,6 +377,71 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <span className="text-gray-500 dark:text-gray-400">Dispute Regression Confidence:</span>
                   <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">95.0% CI</span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: Appearance & Theme */}
+          {activeTab === 'appearance' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block font-semibold mb-2 text-gray-800 dark:text-gray-200">
+                  Interface Visual Theme
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      if (isDarkMode && onToggleDarkMode) onToggleDarkMode();
+                    }}
+                    className={`p-3 rounded-lg border text-left flex flex-col gap-2 transition-all cursor-pointer ${
+                      !isDarkMode
+                        ? 'border-teal-500 bg-teal-50/50 ring-2 ring-teal-500/20 text-gray-900'
+                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-[#17232E]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-semibold text-xs text-amber-600">
+                        <Sun className="w-4 h-4" />
+                        <span>Daylight Theme</span>
+                      </div>
+                      {!isDarkMode && <Check className="w-4 h-4 text-teal-600" />}
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      High-contrast clean daylight aesthetic engineered for institutional offices and print export.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (!isDarkMode && onToggleDarkMode) onToggleDarkMode();
+                    }}
+                    className={`p-3 rounded-lg border text-left flex flex-col gap-2 transition-all cursor-pointer ${
+                      isDarkMode
+                        ? 'border-teal-500 bg-teal-950/40 ring-2 ring-teal-500/30 text-white'
+                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-[#17232E]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-semibold text-xs text-teal-400">
+                        <Moon className="w-4 h-4" />
+                        <span>Cadastral Dark</span>
+                      </div>
+                      {isDarkMode && <Check className="w-4 h-4 text-teal-400" />}
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Low-luminance deep indigo canvas designed for nighttime GIS inspection and command centers.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-800 text-[11px] space-y-1.5">
+                <span className="font-bold text-gray-800 dark:text-gray-200 block">
+                  Accessibility & Ergonomics
+                </span>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Meets WCAG AA contrast standards with vector-sharp geodetic symbology and responsive font scaling.
+                </p>
               </div>
             </div>
           )}

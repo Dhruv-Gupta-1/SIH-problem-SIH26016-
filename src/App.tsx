@@ -65,6 +65,7 @@ export default function App() {
   const [isMerkleModalOpen, setIsMerkleModalOpen] = useState(false);
   const [isNewWorkspaceModalOpen, setIsNewWorkspaceModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Sync Dark Mode class on <html>
   useEffect(() => {
@@ -263,6 +264,9 @@ export default function App() {
         onTriggerTestPush={handleSimulatePush}
         onOpenProfile={() => setActiveScreen('profile')}
         onOpenAiBot={() => setIsAiBotOpen(true)}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isSidebarCollapsed={isSidebarCollapsed}
         activeScreen={activeScreen}
       />
 
@@ -274,6 +278,8 @@ export default function App() {
           onSelectScreen={setActiveScreen}
           onOpenSettings={() => setIsSettingsModalOpen(true)}
           isDarkMode={isDarkMode}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
         {/* Center Content Canvas (Only this right-side content scrolls) */}
@@ -412,6 +418,7 @@ export default function App() {
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}
         isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
       />
     </div>
   );

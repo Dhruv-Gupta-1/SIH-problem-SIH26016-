@@ -8,7 +8,9 @@ import {
   Sparkles,
   RefreshCw,
   SlidersHorizontal,
-  Bot
+  Bot,
+  Settings,
+  Menu
 } from 'lucide-react';
 import { BhumiLogo } from './BhumiLogo';
 import { ActiveScreen } from '../types';
@@ -23,6 +25,9 @@ interface NavbarProps {
   onTriggerTestPush: () => void;
   onOpenProfile?: () => void;
   onOpenAiBot?: () => void;
+  onOpenSettings?: () => void;
+  onToggleSidebar?: () => void;
+  isSidebarCollapsed?: boolean;
   activeScreen?: ActiveScreen;
 }
 
@@ -36,6 +41,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTriggerTestPush,
   onOpenProfile,
   onOpenAiBot,
+  onOpenSettings,
+  onToggleSidebar,
+  isSidebarCollapsed = false,
   activeScreen,
 }) => {
   return (
@@ -47,8 +55,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           : 'bg-white border-[#D9E0E6] text-[#17202A]'
       }`}
     >
-      {/* Left Branding Group */}
-      <div className="flex items-center gap-3 md:gap-4 shrink-0">
+      {/* Left Branding & Analytical Suites Collapse Group */}
+      <div className="flex items-center gap-2.5 md:gap-3 shrink-0">
+        {/* 3 stacked '-' sign Menu toggle for Analytical Suites */}
+        <button
+          onClick={onToggleSidebar}
+          id="navbar-toggle-sidebar-button"
+          title={isSidebarCollapsed ? "Expand Analytical Suites (3 stacked '-' sign)" : "Collapse Analytical Suites (3 stacked '-' sign)"}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#17232E] text-gray-600 hover:text-teal-700 dark:text-gray-300 dark:hover:text-teal-300 transition-colors cursor-pointer"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <button
           onClick={onReopenSplash}
           title="Click to view Secure Institutional Rail Boot Sequence"
@@ -168,51 +186,44 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        {/* Dark Mode Toggle */}
+        {/* Platform Settings Button (replacing theme toggle) */}
         <button
-          onClick={onToggleDarkMode}
-          id="dark-mode-toggle"
-          title={isDarkMode ? 'Switch to daylight theme' : 'Switch to dark mode'}
-          className={`p-2 rounded-md transition-colors ${
+          onClick={onOpenSettings}
+          id="navbar-settings-button"
+          title="Open Platform Settings, Geodetic Datum & System Preferences"
+          className={`p-2 rounded-md transition-colors cursor-pointer ${
             isDarkMode
-              ? 'text-amber-300 hover:bg-[#17232E] hover:text-amber-200'
+              ? 'text-gray-300 hover:bg-[#17232E] hover:text-white'
               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <Settings className="w-4 h-4 hover:rotate-45 transition-transform duration-300 text-teal-600 dark:text-teal-400" />
         </button>
 
         {/* Divider */}
         <div className={`h-6 w-px ${isDarkMode ? 'bg-[#293846]' : 'bg-[#D9E0E6]'}`} />
 
-        {/* User Identity Profile (Clickable to visit Dr. Arishta Sen's profile page) */}
+        {/* User Identity Profile (Avatar Only - Name Hidden) */}
         <button
           onClick={onOpenProfile}
           id="user-profile-widget"
-          title="Click to view Dr. Arishta Sen's Institutional Profile & Dossier"
-          className={`flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-lg transition-all cursor-pointer border text-left group ${
+          title="View Dr. Arishta Sen's Institutional Profile & Dossier (Principal Policy Fellow L3)"
+          className={`p-1 rounded-full transition-all cursor-pointer border group ${
             activeScreen === 'profile'
               ? isDarkMode
-                ? 'bg-[#17232E] border-teal-400 ring-2 ring-teal-500/30'
-                : 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
-              : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-100 dark:hover:bg-[#17232E]'
+                ? 'bg-[#17232E] border-teal-400 ring-2 ring-teal-500/40'
+                : 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/30'
+              : 'border-gray-200 dark:border-gray-800 hover:border-teal-400 dark:hover:border-teal-500 hover:bg-gray-100 dark:hover:bg-[#17232E]'
           }`}
         >
-          <div className="w-8 h-8 rounded-full bg-[#173F5F] text-white flex items-center justify-center text-xs font-black ring-2 ring-teal-500/30 shadow-xs shrink-0 group-hover:scale-105 transition-transform">
-            AS
-          </div>
-          <div className="hidden md:flex flex-col text-left leading-tight">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-gray-900 dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
-                Dr. Arishta Sen
-              </span>
-              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-teal-100 text-teal-900 dark:bg-teal-900/80 dark:text-teal-200 border border-teal-300 dark:border-teal-700">
-                L3
-              </span>
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-[#173F5F] text-white flex items-center justify-center text-xs font-black ring-2 ring-teal-500/30 shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+              AS
             </div>
-            <span className="text-[10px] text-gray-700 dark:text-gray-300 font-medium">
-              Principal Policy Fellow
-            </span>
+            <span
+              className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#111A23] rounded-full"
+              title="Verified Principal Fellow"
+            />
           </div>
         </button>
       </div>

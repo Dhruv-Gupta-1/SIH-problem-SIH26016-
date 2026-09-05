@@ -108,6 +108,97 @@ export const BhumixAiBot: React.FC<BhumixAiBotProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [ttsEnabled, setTtsEnabled] = useState(false);
 
+  // Tap-hold-drag floating state
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    initialPosX: number;
+    initialPosY: number;
+    hasMoved: boolean;
+  } | null>(null);
+
+  // Initialize position to bottom right
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const initX = Math.max(16, window.innerWidth - 76);
+      const initY = Math.max(16, window.innerHeight - 76);
+      setPosition((prev) => prev || { x: initX, y: initY });
+
+      const handleResize = () => {
+        setPosition((prev) => {
+          if (!prev) return null;
+          const buttonSize = 56;
+          const padding = 16;
+          return {
+            x: Math.max(padding, Math.min(prev.x, window.innerWidth - buttonSize - padding)),
+            y: Math.max(padding, Math.min(prev.y, window.innerHeight - buttonSize - padding)),
+          };
+        });
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const currentX = position ? position.x : (window.innerWidth - 76);
+    const currentY = position ? position.y : (window.innerHeight - 76);
+
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialPosX: currentX,
+      initialPosY: currentY,
+      hasMoved: false,
+    };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current) return;
+    const deltaX = e.clientX - dragRef.current.startX;
+    const deltaY = e.clientY - dragRef.current.startY;
+
+    if (!dragRef.current.hasMoved && (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4)) {
+      dragRef.current.hasMoved = true;
+      setIsDragging(true);
+    }
+
+    if (dragRef.current.hasMoved) {
+      const buttonSize = 56;
+      const padding = 12;
+      const newX = Math.max(
+        padding,
+        Math.min(window.innerWidth - buttonSize - padding, dragRef.current.initialPosX + deltaX)
+      );
+      const newY = Math.max(
+        padding,
+        Math.min(window.innerHeight - buttonSize - padding, dragRef.current.initialPosY + deltaY)
+      );
+      setPosition({ x: newX, y: newY });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (dragRef.current) {
+      if (!dragRef.current.hasMoved) {
+        onToggle();
+      }
+      dragRef.current = null;
+    }
+    setIsDragging(false);
+  };
+
+  const handlePointerCancel = () => {
+    dragRef.current = null;
+    setIsDragging(false);
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -213,35 +304,47 @@ export const BhumixAiBot: React.FC<BhumixAiBotProps> = ({
 
   return (
     <>
-      {/* Floating Trigger Button (Bottom Right) */}
-      <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 select-none">
-        {!isOpen && (
+      {/* Floating Trigger Button (Avatar Only, Draggable via Tap-Hold-Drag) */}
+      {!isOpen && (
+        <div
+          id="draggable-ai-bot-wrapper"
+          style={
+            position
+              ? { left: `${position.x}px`, top: `${position.y}px` }
+              : undefined
+          }
+          className={`fixed ${!position ? 'bottom-5 right-5' : ''} z-50 select-none touch-none`}
+        >
           <button
-            onClick={onToggle}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
             id="open-ai-bot-button"
-            className="group flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#173F5F] hover:bg-[#002945] text-white shadow-xl hover:shadow-2xl border border-teal-400/40 cursor-pointer transition-all hover:scale-105"
-            title="Ask BHUMI-AI to decipher any land, parcel, dispute or legal question"
+            className={`relative group w-14 h-14 rounded-full bg-gradient-to-tr from-[#0b2438] via-[#173F5F] to-[#20527c] text-white shadow-xl hover:shadow-2xl border-2 border-teal-400/50 flex items-center justify-center transition-all ${
+              isDragging
+                ? 'cursor-grabbing scale-110 ring-4 ring-teal-400/50 shadow-2xl'
+                : 'cursor-grab hover:scale-105 active:scale-95'
+            }`}
+            title="BHUMI-AI Copilot (Tap to open, hold & drag to move)"
+            aria-label="Open BHUMI-AI Copilot"
           >
-            <div className="relative flex items-center justify-center">
-              <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-teal-400 opacity-60"></span>
-              <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white shadow-sm">
-                <Sparkles className="w-3.5 h-3.5" />
-              </div>
+            {/* Ambient Pulse Ring */}
+            <span className="animate-ping absolute inline-flex h-10 w-10 rounded-full bg-teal-400/30 -z-10" />
+
+            {/* Glowing Avatar Icon */}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-[#173F5F] flex items-center justify-center text-teal-200 shadow-inner group-hover:text-white transition-colors">
+              <Bot className="w-5 h-5 text-white" />
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-extrabold tracking-wide uppercase flex items-center gap-1">
-                <span>BHUMI-AI</span>
-                <span className="text-[9px] px-1 py-0.2 rounded bg-teal-400/20 text-teal-300 font-mono font-bold">
-                  Decipher
-                </span>
-              </span>
-              <span className="text-[10px] text-teal-200/80 font-medium hidden sm:inline">
-                Cadastral Copilot
-              </span>
-            </div>
+
+            {/* Active Status Badge */}
+            <span
+              className="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#111A23] rounded-full shadow-xs"
+              title="AI Intelligence Engine Active"
+            />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Floating Active Bot Window */}
       {isOpen && (
